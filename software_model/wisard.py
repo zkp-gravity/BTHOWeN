@@ -146,7 +146,7 @@ class WiSARD:
                 assert x3 % p == h, f'{h} != {x3 % p}'
 
                 print(f'    info{i}: {{', file=f)
-                print(f'        decomposition{i}: {{', file=f)
+                print(f'        decomposition: {{', file=f)
                 print(f'            index1: {h0}field', file=f)
                 print(f'            index2: {h1}field', file=f)
                 print(f'            msb: {msb}field', file=f)
