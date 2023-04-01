@@ -147,8 +147,8 @@ class WiSARD:
 
                 print(f'    info{i}: {{', file=f)
                 print(f'        decomposition: {{', file=f)
-                print(f'            index1: {h0}field', file=f)
-                print(f'            index2: {h1}field', file=f)
+                print(f'            index1: {h0}field,', file=f)
+                print(f'            index2: {h1}field,', file=f)
                 print(f'            msb: {msb}field', file=f)
                 print(f'        }},', file=f)
                 print(f'        hash: {h}field,', file=f)
