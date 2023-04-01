@@ -137,8 +137,8 @@ class WiSARD:
 
                 yy = yv[i]
                 x = int(0)
-                for i in range(len(yy)):
-                    x += int(yy[i] << i)
+                for j in range(len(yy)):
+                    x += int(yy[j] << j)
                 x3 = x * x * x
                 p = 2097143
                 quot = (x3 - h) // p
@@ -165,10 +165,10 @@ class WiSARD:
         winner = np.where(responses == max_response)[0]
 
         with open('winning_discriminator_index.txt', 'w') as f:
-            print(f'{{ winner: {winner[0]}field }}', file=f)
+            print(f'{winner[0]}field', file=f)
 
         with open('winning_discriminator_value.txt', 'w') as f:
-            print(f'{{ max_response: {max_response}field }}', file=f)
+            print(f'{max_response}field', file=f)
 
         return winner
 

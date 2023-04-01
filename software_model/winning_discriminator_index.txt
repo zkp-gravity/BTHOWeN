@@ -1,1 +1,1 @@
-{ winner: 7 }
+7field
