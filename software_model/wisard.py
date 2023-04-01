@@ -3,7 +3,17 @@
 import numpy as np
 from numba import jit
 
-from bloom_filter import BloomFilter
+from bloom_filter import BloomFilter, h3_hash
+
+def export_to_file(fname, yv):
+    with open(fname, 'w') as f:
+        print('{', file=f)
+        for i in range(yv.shape[0]):
+            print(f'    in{i}: {{', file=f)
+            in_i = ',\n'.join(f'        bit{j}: {yv[i,j]}field' for j in range(yv.shape[1]))
+            print(in_i, file=f)
+            print('    },' if i < yv.shape[0]-1 else '    }', file=f)
+        print('}', file=f)
 
 # Converts a vector of booleans to an unsigned integer
 #  i.e. (2**0 * xv[0]) + (2**1 * xv[1]) + ... + (2**n * xv[n])
@@ -52,11 +62,15 @@ class Discriminator:
     # Inputs:
     #  xv: A vector of boolean values representing the input sample
     # Returns: The response of the discriminator to the input
-    def predict(self, xv):
+    def predict(self, xv, yv, i):
         filter_inputs = xv.reshape(self.num_filters, -1) # Divide the inputs between the filters
         response = 0
         for idx, inp in enumerate(filter_inputs):
-            response += int(self.filters[idx].check_membership(inp))
+            # len(inp) == 28
+            res, ds = self.filters[idx].check_membership(inp)
+            yv[idx, i] = ds[0]
+            yv[idx, i + 10] = ds[1] # 10 is the number of discriminators
+            response += int(res)
         return response
     
     # Sets the bleaching value for all filters
@@ -104,7 +118,23 @@ class WiSARD:
     # Returns: A vector containing the indices of the discriminators with maximal response
     def predict(self, xv):
         xv = np.pad(xv, (0, self.pad_zeros))[self.input_order] # Reorder input
-        responses = np.array([d.predict(xv) for d in self.discriminators], dtype=int)
+
+        # Each discriminator has 56 filters
+        num_filters = 56
+        yv = xv.reshape(num_filters, 28)
+        export_to_file('input_file.txt', yv)
+
+        filter_bits = 10 # 1024
+        num_hashes = 2
+        hashes1 = [h3_hash(yv[i], num_hashes, filter_bits) for i in range(yv.shape[0])]
+        hashes2 = np.array([[h[0], h[1], b] for (h, b) in hashes1], dtype=np.int64)
+        export_to_file('hash_values.txt', hashes2)
+
+        yv = np.zeros((num_filters, num_hashes * len(self.discriminators)), dtype=np.int64)
+
+        responses = np.array([d.predict(xv, yv, i) for i, d in enumerate(self.discriminators)], dtype=int)
+        export_to_file('bloom_filters.txt', yv)
+
         max_response = responses.max()
         return np.where(responses == max_response)[0]
 

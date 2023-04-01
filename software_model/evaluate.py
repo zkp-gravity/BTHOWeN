@@ -20,6 +20,7 @@ def eval_model(model_fname, dset_name):
     print("Running inference")
     bits_per_input = state_dict["info"]["bits_per_input"]
     test_inputs, test_labels = binarize_datasets(train_dataset, test_dataset, bits_per_input)[-2:]
+    test_inputs = [test_inputs[0]]
     result = run_inference(test_inputs, test_labels, state_dict["model"], 1)
 
 def read_arguments():
