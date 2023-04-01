@@ -66,16 +66,16 @@ class Discriminator:
         filter_inputs = xv.reshape(self.num_filters, -1) # Divide the inputs between the filters
         response = 0
         num_discriminators = 10
-        print(f'    discriminator{i}: {{', file=f)
+        print(f'    "discriminator{i}": {{', file=f)
         for idx, inp in enumerate(filter_inputs):
             # len(inp) == 28
             res, ds = self.filters[idx].check_membership(inp)
-            print(f'        bloomfilter{idx}: {{', file=f)
+            print(f'        "bloomfilter{idx}": {{', file=f)
             bf = self.filters[idx].data;
             for j in range(len(bf)):
-                print(f'               entry{j}: {{', file=f)
-                print(f'                   index: {j}field,', file=f)
-                print(f'                   value: {bf[j]}field', file=f)
+                print(f'               "entry{j}": {{', file=f)
+                print(f'                   "index": "{j}field",', file=f)
+                print(f'                   "value": "{bf[j]}field"', file=f)
                 print('                },' if j < len(bf) - 1 else '            }', file=f)
             print('        },' if idx < len(filter_inputs) - 1 else '        }', file=f)
             yv[idx, i] = ds[0]
