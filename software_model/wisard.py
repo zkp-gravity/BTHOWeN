@@ -136,7 +136,21 @@ class WiSARD:
         export_to_file('bloom_filters.txt', yv)
 
         max_response = responses.max()
-        return np.where(responses == max_response)[0]
+        winner = np.where(responses == max_response)[0]
+
+        #print(f'responses: {responses}, winning discriminator: {winner}, max_response: {max_response}')
+        with open('winning_discriminators.txt', 'w') as f:
+
+            winner_str = ',\n'.join(f'windex{i}: {w}field' for i, w in enumerate(winner))
+            print(f'''
+            {{
+                winners: {{
+                    {winner_str}
+                }},
+                max_response: {max_response}field
+            }}
+            ''', file=f)
+        return winner
 
     # Sets the bleaching value for all filters
     # See the BloomFilter implementation for more information on what this means

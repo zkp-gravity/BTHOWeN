@@ -34,8 +34,7 @@ def h3_hash(xv, num_hashes, filter_bits):
     hash = np.zeros(num_hashes, dtype=np.int64)
 
     p = 1048583
-    x1 = x % p # reduce the input first to make sure the cube fits in 64 bits.
-    h = (x1 * x1 * x1) % p
+    h = (x * x * x) % p
 
     mask = (1 << filter_bits) - 1
     for i in range(num_hashes):
