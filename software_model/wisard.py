@@ -62,15 +62,27 @@ class Discriminator:
     # Inputs:
     #  xv: A vector of boolean values representing the input sample
     # Returns: The response of the discriminator to the input
-    def predict(self, xv, yv, i):
+    def predict(self, xv, yv, i, f):
         filter_inputs = xv.reshape(self.num_filters, -1) # Divide the inputs between the filters
         response = 0
+        num_discriminators = 10
+        print(f'    discriminator{i}: {{', file=f)
         for idx, inp in enumerate(filter_inputs):
             # len(inp) == 28
             res, ds = self.filters[idx].check_membership(inp)
+            print(f'        bloomfilter{idx}: {{', file=f)
+            bf = self.filters[idx].data;
+            for j in range(len(bf)):
+                print(f'               entry{j}: {{', file=f)
+                print(f'                   index: {j}field,', file=f)
+                print(f'                   value: {bf[j]}field', file=f)
+                print('                },' if j < len(bf) - 1 else '            }', file=f)
+            print('        },' if idx < len(filter_inputs) - 1 else '        }', file=f)
             yv[idx, i] = ds[0]
-            yv[idx, i + 10] = ds[1] # 10 is the number of discriminators
+            yv[idx, i + num_discriminators] = ds[1]
             response += int(res)
+        print('    },' if i < num_discriminators - 1 else '    }', file=f)
+
         return response
     
     # Sets the bleaching value for all filters
@@ -166,7 +178,13 @@ class WiSARD:
 
         yv = np.zeros((num_filters, num_hashes * len(self.discriminators)), dtype=np.int64)
 
-        responses = np.array([d.predict(xv, yv, i) for i, d in enumerate(self.discriminators)], dtype=int)
+        with open('all_bfs.txt', 'a') as f:
+            print('{', file=f)
+
+            responses = np.array([d.predict(xv, yv, i, f) for i, d in enumerate(self.discriminators)], dtype=int)
+
+            print('}', file=f)
+
         export_to_file('bloom_filters.txt', yv)
 
         max_response = responses.max()
