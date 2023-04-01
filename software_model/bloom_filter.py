@@ -1,5 +1,6 @@
 #!/usr/bin/false
 
+import math
 import numpy as np
 from numba import jit
 
@@ -25,7 +26,7 @@ from numba import jit
 
 @jit(nopython=True)
 def h3_hash(xv, num_hashes, filter_bits):
-    assert(num_hashes > 1 and filter_bits >= 7)
+    assert num_hashes > 1 and filter_bits >= 7
 
     x = 0
     for i in range(len(xv)):
@@ -33,8 +34,10 @@ def h3_hash(xv, num_hashes, filter_bits):
 
     hash = np.zeros(num_hashes, dtype=np.int64)
 
-    p = 1048583
-    h = (x * x * x) % p
+    p = 2097143
+    xp = x % p
+    x3 = xp * xp * xp
+    h = x3 % p
 
     mask = (1 << filter_bits) - 1
     for i in range(num_hashes):

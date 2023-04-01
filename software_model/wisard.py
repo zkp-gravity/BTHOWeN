@@ -128,7 +128,33 @@ class WiSARD:
         num_hashes = 2
         hashes1 = [h3_hash(yv[i], num_hashes, filter_bits) for i in range(yv.shape[0])]
         hashes2 = np.array([[h[0], h[1], b] for (h, b) in hashes1], dtype=np.int64)
-        export_to_file('hash_values.txt', hashes2)
+        quot = 7
+        with open('hash_values.txt', 'w') as f:
+            print('{', file=f)
+            for i in range(hashes2.shape[0]):
+                h0, h1, msb = hashes2[i]
+                h = h0 + (h1<<10) + (msb<<20)
+
+                yy = yv[i]
+                x = int(0)
+                for i in range(len(yy)):
+                    x += int(yy[i] << i)
+                x3 = x * x * x
+                p = 2097143
+                quot = (x3 - h) // p
+                assert x3 == quot * p + h, f'{x3}, {quot}, {h}, {x3 % p}'
+                assert x3 % p == h, f'{h} != {x3 % p}'
+
+                print(f'    info{i}: {{', file=f)
+                print(f'        decomposition{i}: {{', file=f)
+                print(f'            index1: {h0}field', file=f)
+                print(f'            index2: {h1}field', file=f)
+                print(f'            msb: {msb}field', file=f)
+                print(f'        }},', file=f)
+                print(f'        hash: {h}field,', file=f)
+                print(f'        quotient: {quot}field', file=f)
+                print('    },' if i < hashes2.shape[0]-1 else '    }', file=f)
+            print('}', file=f)
 
         yv = np.zeros((num_filters, num_hashes * len(self.discriminators)), dtype=np.int64)
 
@@ -138,18 +164,12 @@ class WiSARD:
         max_response = responses.max()
         winner = np.where(responses == max_response)[0]
 
-        #print(f'responses: {responses}, winning discriminator: {winner}, max_response: {max_response}')
-        with open('winning_discriminators.txt', 'w') as f:
+        with open('winning_discriminator_index.txt', 'w') as f:
+            print(f'{{ winner: {winner[0]}field }}', file=f)
 
-            winner_str = ',\n'.join(f'windex{i}: {w}field' for i, w in enumerate(winner))
-            print(f'''
-            {{
-                winners: {{
-                    {winner_str}
-                }},
-                max_response: {max_response}field
-            }}
-            ''', file=f)
+        with open('winning_discriminator_value.txt', 'w') as f:
+            print(f'{{ max_response: {max_response}field }}', file=f)
+
         return winner
 
     # Sets the bleaching value for all filters
