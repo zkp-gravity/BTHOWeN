@@ -122,13 +122,21 @@ class WiSARD:
         # Each discriminator has 56 filters
         num_filters = 56
         yv = xv.reshape(num_filters, 28)
-        export_to_file('input_file.txt', yv)
+        with open('input_file.txt', 'w') as f:
+            print('{', file=f)
+            for i in range(yv.shape[0]):
+                yy = yv[i]
+                x = int(0)
+                for j in range(len(yy)):
+                    x += int(yy[j] << j)
+                print(f'    in{i}: {x}field', file=f, end='')
+                print(',' if i < yv.shape[0] - 1 else '', file=f)
+            print('}', file=f)
 
         filter_bits = 10 # 1024
         num_hashes = 2
         hashes1 = [h3_hash(yv[i], num_hashes, filter_bits) for i in range(yv.shape[0])]
         hashes2 = np.array([[h[0], h[1], b] for (h, b) in hashes1], dtype=np.int64)
-        quot = 7
         with open('hash_values.txt', 'w') as f:
             print('{', file=f)
             for i in range(hashes2.shape[0]):
